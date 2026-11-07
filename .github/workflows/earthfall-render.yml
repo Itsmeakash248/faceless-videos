@@ -18,6 +18,14 @@ on:
           - delivery
           - draft
         default: delivery
+      start:
+        description: "Start second (blank = 0; use for a small smoke test)"
+        required: false
+        default: ""
+      end:
+        description: "End second (blank = full video; use for a small smoke test)"
+        required: false
+        default: ""
       audio:
         description: "Mux earthfall/data/mix.wav into the final MP4"
         type: boolean
@@ -34,9 +42,6 @@ concurrency:
   group: render-earthfall-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  PROJECT_DIR: earthfall
-
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -44,6 +49,9 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       duration: ${{ steps.plan.outputs.duration }}
+      range_start: ${{ steps.plan.outputs.range_start }}
+      range_end: ${{ steps.plan.outputs.range_end }}
+      range_duration: ${{ steps.plan.outputs.range_duration }}
       chunks: ${{ steps.plan.outputs.chunks }}
       quality: ${{ steps.plan.outputs.quality }}
       workers: ${{ steps.plan.outputs.workers }}
@@ -56,39 +64,41 @@ jobs:
           sparse-checkout: earthfall
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Verify headless Chrome
+      - name: Install FFmpeg
         run: |
-          set -euo pipefail
-          command -v google-chrome-stable || command -v google-chrome
-          google-chrome-stable --version 2>/dev/null || google-chrome --version
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
 
-      - name: Plan frame-exact chunks
+      - name: Plan frame-exact chunks from audio duration
         id: plan
         working-directory: earthfall
         env:
           CHUNKS: ${{ inputs.chunks }}
           WORKERS: ${{ inputs.workers }}
           QUALITY: ${{ inputs.quality }}
+          RANGE_START: ${{ inputs.start }}
+          RANGE_END: ${{ inputs.end }}
           AUDIO: ${{ inputs.audio }}
           CREATE_RELEASE: ${{ inputs.create_release }}
-          CHROME_SOFTWARE_GL: "1"
-          CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
         run: |
           set -euo pipefail
-          DUR=$(node tools/capture.mjs eval "OP.duration()" | grep -E '^[0-9]+(\.[0-9]+)?$' | head -1)
-          test -n "$DUR"
-          echo "Video duration: ${DUR}s"
-          export DURATION="$DUR"
+          FULL_DUR=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 data/mix.wav)
+          test -n "$FULL_DUR"
+          echo "Source audio duration: ${FULL_DUR}s"
+          export FULL_DURATION="$FULL_DUR"
 
           node - <<'NODE' >> "$GITHUB_OUTPUT"
           const fps = 30;
-          const duration = parseFloat(process.env.DURATION);
+          const full = parseFloat(process.env.FULL_DURATION);
+          let start = parseFloat(process.env.RANGE_START || "0");
+          let end = parseFloat(process.env.RANGE_END || "");
+          if (!Number.isFinite(start)) start = 0;
+          if (!Number.isFinite(end) || end <= 0) end = full;
+          start = Math.max(0, Math.min(start, full));
+          end = Math.min(Math.max(end, start + 1 / fps), full);
+
           const requested = Math.max(1, Math.min(20, parseInt(process.env.CHUNKS || "20", 10) || 20));
-          const totalFrames = Math.round(duration * fps);
+          const totalFrames = Math.max(1, Math.round((end - start) * fps));
           const chunks = Math.max(1, Math.min(requested, totalFrames));
           const include = [];
           for (let i = 0; i < chunks; i++) {
@@ -96,12 +106,16 @@ jobs:
             const f1 = Math.floor(((i + 1) * totalFrames) / chunks);
             include.push({
               id: String(i).padStart(2, "0"),
-              start: (f0 / fps).toFixed(6),
-              end: (f1 / fps).toFixed(6),
+              start: (start + f0 / fps).toFixed(6),
+              end: (start + f1 / fps).toFixed(6),
               frames: f1 - f0,
             });
           }
-          console.log(`duration=${duration}`);
+
+          console.log(`duration=${full}`);
+          console.log(`range_start=${start.toFixed(6)}`);
+          console.log(`range_end=${end.toFixed(6)}`);
+          console.log(`range_duration=${(end - start).toFixed(6)}`);
           console.log(`chunks=${chunks}`);
           console.log(`quality=${process.env.QUALITY || "delivery"}`);
           console.log(`workers=${Math.max(1, Math.min(8, parseInt(process.env.WORKERS || "4", 10) || 4))}`);
@@ -117,7 +131,8 @@ jobs:
             echo ""
             echo "| Setting | Value |"
             echo "|---|---|"
-            echo "| Duration | **${{ steps.plan.outputs.duration }}s** |"
+            echo "| Full duration | **${{ steps.plan.outputs.duration }}s** |"
+            echo "| Render range | **${{ steps.plan.outputs.range_start }}s → ${{ steps.plan.outputs.range_end }}s** |"
             echo "| Parallel VMs | **${{ steps.plan.outputs.chunks }}** |"
             echo "| Workers per VM | **${{ steps.plan.outputs.workers }}** |"
             echo "| Quality | **${{ steps.plan.outputs.quality }}** |"
@@ -135,6 +150,8 @@ jobs:
     env:
       CHROME_SOFTWARE_GL: "1"
       CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
+      CAPTURE_VERBOSE: "1"
+      CAPTURE_RPC_TIMEOUT_MS: "600000"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -156,6 +173,8 @@ jobs:
           set -euo pipefail
           command -v google-chrome-stable || command -v google-chrome
           google-chrome-stable --version 2>/dev/null || google-chrome --version
+          nproc
+          free -h
 
       - name: Render chunk ${{ matrix.id }}
         working-directory: earthfall
@@ -172,9 +191,19 @@ jobs:
           ARGS=()
           if [ "$QUALITY" = "draft" ]; then ARGS+=(--draft); fi
           echo "Chunk ${ID}: frames ${{ matrix.frames }} · ${START}s -> ${END}s · ${WORKERS} workers"
-          node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}"
+          set -o pipefail
+          timeout 1500 node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}" 2>&1 | tee render.log
           test -s "$OUT"
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$OUT"
+
+      - name: Upload render log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: earthfall-log-${{ matrix.id }}
+          path: earthfall/render.log
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload chunk
         uses: actions/upload-artifact@v4
@@ -209,16 +238,20 @@ jobs:
 
       - name: Stitch and mux final MP4
         working-directory: earthfall
+        env:
+          RANGE_START: ${{ needs.plan.outputs.range_start }}
+          RANGE_DURATION: ${{ needs.plan.outputs.range_duration }}
+          AUDIO: ${{ needs.plan.outputs.audio }}
         run: |
           set -euo pipefail
           mkdir -p output
           ls ../chunks_download/chunk_*.mp4 | sort > /tmp/chunks.txt
           awk '{print "file '\''"$0"'\''"}' /tmp/chunks.txt > /tmp/concat.txt
-          echo "Stitching $(wc -l < /tmp/chunks.txt) chunks"
+          echo "Stitching $(wc -l < /tmp/chunks.txt) chunks over ${RANGE_START}s + ${RANGE_DURATION}s"
           ffmpeg -y -loglevel error -fflags +genpts -f concat -safe 0 -i /tmp/concat.txt \
             -c copy -avoid_negative_ts make_zero -movflags +faststart /tmp/earthfall_silent.mp4
-          if [ "${{ needs.plan.outputs.audio }}" = "true" ]; then
-            ffmpeg -y -loglevel error -i /tmp/earthfall_silent.mp4 -i data/mix.wav \
+          if [ "$AUDIO" = "true" ]; then
+            ffmpeg -y -loglevel error -i /tmp/earthfall_silent.mp4 -ss "$RANGE_START" -t "$RANGE_DURATION" -i data/mix.wav \
               -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 320k -shortest \
               -movflags +faststart output/earthfall_16x9.mp4
           else
@@ -246,7 +279,7 @@ jobs:
 
             - **Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             - **Commit:** `${{ github.sha }}`
-            - **Duration:** ${{ needs.plan.outputs.duration }}s
+            - **Range:** ${{ needs.plan.outputs.range_start }}s → ${{ needs.plan.outputs.range_end }}s
             - **VMs:** ${{ needs.plan.outputs.chunks }} × ${{ needs.plan.outputs.workers }} workers
             - **Quality:** ${{ needs.plan.outputs.quality }}
           files: earthfall/output/earthfall_16x9.mp4

@@ -18,6 +18,10 @@ const CHROME = process.env.CHROME || ['/Applications/Google Chrome.app/Contents/
   || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const FPS = 30;
 const SOFTWARE_GL = process.env.CHROME_SOFTWARE_GL === '1';
+const VERBOSE = process.env.CAPTURE_VERBOSE === '1';
+const RPC_TIMEOUT_MS = parseInt(process.env.CAPTURE_RPC_TIMEOUT_MS || '0', 10);
+const T0 = Date.now();
+const vlog = (...a) => { if (VERBOSE) console.error('[capture]', ((Date.now() - T0) / 1000).toFixed(1) + 's', ...a); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
@@ -43,15 +47,18 @@ async function openWorker(port) {
   const prof = fs.mkdtempSync(path.join(os.tmpdir(), 'op-chrome-'));
   const chrome = spawn(CHROME, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${prof}`, '--no-first-run', '--no-default-browser-check',
     '--hide-scrollbars', '--window-size=1920,1080', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []), '--autoplay-policy=no-user-gesture-required',
-    '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--js-flags=--max-old-space-size=4096', ...(process.platform === 'linux' ? (SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-gl=angle', '--use-angle=gl']) : []), ...(process.env.CHROME_FLAGS ? process.env.CHROME_FLAGS.split(/\s+/).filter(Boolean) : []), 'about:blank'], { stdio: 'ignore' });
+    '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--js-flags=--max-old-space-size=4096', ...(process.platform === 'linux' ? (SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-gl=angle', '--use-angle=gl']) : []), ...(process.env.CHROME_FLAGS ? process.env.CHROME_FLAGS.split(/\s+/).filter(Boolean) : []), 'about:blank'], { stdio: VERBOSE ? ['ignore', 'inherit', 'inherit'] : 'ignore' });
   let target, dbg;
+  vlog('chrome launched', path.basename(CHROME), 'pid', chrome.pid);
   for (let i = 0; i < 150 && !dbg; i++) { try { dbg = fs.readFileSync(path.join(prof, 'DevToolsActivePort'), 'utf8').split('\n')[0].trim(); } catch { await sleep(100); } }
   for (let i = 0; i < 150; i++) {
     try { const r = await fetch(`http://127.0.0.1:${dbg}/json/new?about:blank`, { method: 'PUT' }); target = await r.json(); break; } catch { await sleep(150); }
   }
   if (!target) throw new Error('chrome did not start');
+  vlog('devtools port ready', dbg);
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((r) => (ws.onopen = r));
+  vlog('devtools websocket connected');
   let id = 0; const pend = new Map(); const logs = [];
   ws.onmessage = (e) => {
     const m = JSON.parse(e.data);
@@ -59,20 +66,27 @@ async function openWorker(port) {
     else if (m.method === 'Runtime.exceptionThrown') logs.push('EXCEPTION ' + (m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text));
     else if (m.method === 'Runtime.consoleAPICalled' && ['error', 'warning'].includes(m.params.type)) logs.push(m.params.type.toUpperCase() + ' ' + m.params.args.map((a) => a.value ?? a.description).join(' '));
   };
-  const send = (method, params = {}) => new Promise((res, rej) => { const i = ++id; pend.set(i, { res, rej }); ws.send(JSON.stringify({ id: i, method, params })); });
+  const send = (method, params = {}) => new Promise((res, rej) => {
+    const i = ++id; let timer;
+    if (RPC_TIMEOUT_MS > 0) timer = setTimeout(() => { if (pend.has(i)) { pend.delete(i); rej(new Error(`${method} timed out after ${RPC_TIMEOUT_MS}ms`)); } }, RPC_TIMEOUT_MS);
+    if (timer?.unref) timer.unref();
+    pend.set(i, { res: (v) => { if (timer) clearTimeout(timer); res(v); }, rej: (e) => { if (timer) clearTimeout(timer); rej(e); } });
+    ws.send(JSON.stringify({ id: i, method, params }));
+  });
   const evalv = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text); return r.result.value; };
   await send('Runtime.enable');
   await send('Page.enable');
   await send('Page.navigate', { url: `http://127.0.0.1:${port}/index.html?capture=1${process.env.QS || ''}` });
   for (let i = 0; i < 600; i++) {
+    if (VERBOSE && i % 50 === 0) vlog('waiting for OP.ready', (i / 10).toFixed(1) + 's');
     const st = await evalv('window.OP ? (OP.bootError ? "ERR:" + OP.bootError : OP.ready) : false').catch(() => false);
-    if (st === true) break;
+    if (st === true) { vlog('scene ready', (i / 10).toFixed(1) + 's'); break; }
     if (typeof st === 'string') throw new Error('boot failed: ' + st + '\n' + logs.join('\n'));
     if (i === 599) throw new Error('boot timeout\n' + logs.join('\n'));
     await sleep(100);
   }
-  try { DUR = DUR || await evalv('OP.duration()'); } catch {}
-  const close = () => { try { ws.close(); } catch {} chrome.kill('SIGKILL'); setTimeout(() => { try { fs.rmSync(prof, { recursive: true, force: true }); } catch {} }, 500); };
+  try { DUR = DUR || await evalv('OP.duration()'); vlog('duration', DUR); } catch (e) { vlog('duration read failed', e.message); }
+  const close = () => { vlog('worker closing'); try { ws.close(); } catch {} chrome.kill('SIGKILL'); setTimeout(() => { try { fs.rmSync(prof, { recursive: true, force: true }); } catch {} }, 500); };
   return { evalv, logs, close };
 }
 const jpg = (d) => Buffer.from(d.slice(d.indexOf(',') + 1), 'base64');
