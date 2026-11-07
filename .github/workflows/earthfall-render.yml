@@ -30,6 +30,18 @@ on:
         description: "Per-chunk hard timeout in seconds (default 1500)"
         required: false
         default: "1500"
+      chunk_ids:
+        description: "Comma-separated chunk ids to render (blank = all)"
+        required: false
+        default: ""
+      resume_run:
+        description: "Run id to reuse earthfall-chunk-* artifacts from (blank = current run)"
+        required: false
+        default: ""
+      upload_artifact:
+        description: "Upload the final MP4 as an Actions artifact"
+        type: boolean
+        default: true
       audio:
         description: "Mux earthfall/data/mix.wav into the final MP4"
         type: boolean
@@ -41,6 +53,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: render-earthfall-${{ github.ref }}
@@ -82,6 +95,8 @@ jobs:
           QUALITY: ${{ inputs.quality }}
           RANGE_START: ${{ inputs.start }}
           RANGE_END: ${{ inputs.end }}
+          CHUNK_IDS: ${{ inputs.chunk_ids }}
+          RESUME_RUN: ${{ inputs.resume_run }}
           AUDIO: ${{ inputs.audio }}
           CREATE_RELEASE: ${{ inputs.create_release }}
         run: |
@@ -116,11 +131,20 @@ jobs:
             });
           }
 
+          const only = (process.env.CHUNK_IDS || "").split(",").map((s) => s.trim()).filter(Boolean);
+          if (only.length) {
+            const missing = only.filter((id) => !include.some((c) => c.id === id));
+            if (missing.length) throw new Error("unknown chunk ids: " + missing.join(","));
+            const picked = include.filter((c) => only.includes(c.id));
+            include.splice(0, include.length, ...picked);
+          }
+
           console.log(`duration=${full}`);
           console.log(`range_start=${start.toFixed(6)}`);
           console.log(`range_end=${end.toFixed(6)}`);
           console.log(`range_duration=${(end - start).toFixed(6)}`);
-          console.log(`chunks=${chunks}`);
+          console.log(`chunks=${include.length}`);
+          console.log(`resume_run=${process.env.RESUME_RUN || ""}`);
           console.log(`quality=${process.env.QUALITY || "delivery"}`);
           console.log(`workers=${Math.max(1, Math.min(8, parseInt(process.env.WORKERS || "4", 10) || 4))}`);
           console.log(`audio=${process.env.AUDIO === "false" ? "false" : "true"}`);
@@ -146,7 +170,7 @@ jobs:
   render-chunk:
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
     strategy:
       fail-fast: false
       max-parallel: 20
@@ -227,7 +251,7 @@ jobs:
   merge:
     needs: [plan, render-chunk]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -240,12 +264,26 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
 
-      - name: Download chunks
+      - name: Download chunks from this run
         uses: actions/download-artifact@v4
         with:
           pattern: earthfall-chunk-*
-          path: chunks_download
+          path: chunks_new
           merge-multiple: true
+
+      - name: Download chunks from resume run
+        if: ${{ inputs.resume_run != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESUME_RUN: ${{ inputs.resume_run }}
+        run: |
+          set -euo pipefail
+          mkdir -p chunks_old
+          for i in $(seq -w 0 19); do
+            gh run download "$RESUME_RUN" --repo "$GITHUB_REPOSITORY" -n "earthfall-chunk-$i" -D chunks_old >/dev/null 2>&1 \
+              && echo "reused chunk $i" || echo "chunk $i not in resume run"
+          done
+          ls chunks_old/chunk_*.mp4 | wc -l
 
       - name: Stitch and mux final MP4
         working-directory: earthfall
@@ -253,10 +291,13 @@ jobs:
           RANGE_START: ${{ needs.plan.outputs.range_start }}
           RANGE_DURATION: ${{ needs.plan.outputs.range_duration }}
           AUDIO: ${{ needs.plan.outputs.audio }}
+          RESUME_RUN: ${{ inputs.resume_run }}
         run: |
           set -euo pipefail
-          mkdir -p output
-          ls "$PWD/../chunks_download"/chunk_*.mp4 | sort > /tmp/chunks.txt
+          mkdir -p output ../chunks_all
+          if [ -n "$RESUME_RUN" ]; then cp ../chunks_old/chunk_*.mp4 ../chunks_all/; fi
+          cp ../chunks_new/chunk_*.mp4 ../chunks_all/
+          ls "$PWD/../chunks_all"/chunk_*.mp4 | sort > /tmp/chunks.txt
           awk '{print "file '\''"$0"'\''"}' /tmp/chunks.txt > /tmp/concat.txt
           echo "Stitching $(wc -l < /tmp/chunks.txt) chunks over ${RANGE_START}s + ${RANGE_DURATION}s"
           ffmpeg -y -loglevel error -fflags +genpts -f concat -safe 0 -i /tmp/concat.txt \
@@ -272,6 +313,7 @@ jobs:
           ffprobe -v error -show_entries format=duration,size -of default=nw=1 output/earthfall_16x9.mp4
 
       - name: Upload final video
+        if: ${{ inputs.upload_artifact }}
         uses: actions/upload-artifact@v4
         with:
           name: earthfall-render-${{ github.run_number }}
