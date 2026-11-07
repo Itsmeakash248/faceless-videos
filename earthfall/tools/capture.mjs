@@ -45,17 +45,35 @@ function serve() {
 // ---------- chrome worker ----------
 async function openWorker(port) {
   const prof = fs.mkdtempSync(path.join(os.tmpdir(), 'op-chrome-'));
-  const chrome = spawn(CHROME, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${prof}`, '--no-first-run', '--no-default-browser-check',
+  const chrome = spawn(CHROME, ['--headless=new', '--remote-debugging-port=0', '--remote-allow-origins=*', `--user-data-dir=${prof}`, '--no-first-run', '--no-default-browser-check',
     '--hide-scrollbars', '--window-size=1920,1080', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []), '--autoplay-policy=no-user-gesture-required',
+    '--disable-background-networking', '--disable-component-update', '--disable-sync', '--disable-default-apps', '--disable-extensions', '--metrics-recording-only', '--no-service-autorun',
+    '--disable-features=Translate,MediaRouter,OptimizationHints,InterestFeedContentSuggestions',
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--js-flags=--max-old-space-size=4096', ...(process.platform === 'linux' ? (SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-gl=angle', '--use-angle=gl']) : []), ...(process.env.CHROME_FLAGS ? process.env.CHROME_FLAGS.split(/\s+/).filter(Boolean) : []), 'about:blank'], { stdio: VERBOSE ? ['ignore', 'inherit', 'inherit'] : 'ignore' });
   let target, dbg;
   vlog('chrome launched', path.basename(CHROME), 'pid', chrome.pid);
-  for (let i = 0; i < 150 && !dbg; i++) { try { dbg = fs.readFileSync(path.join(prof, 'DevToolsActivePort'), 'utf8').split('\n')[0].trim(); } catch { await sleep(100); } }
-  for (let i = 0; i < 150; i++) {
-    try { const r = await fetch(`http://127.0.0.1:${dbg}/json/new?about:blank`, { method: 'PUT' }); target = await r.json(); break; } catch { await sleep(150); }
+  for (let i = 0; i < 300 && !dbg; i++) {
+    try { dbg = fs.readFileSync(path.join(prof, 'DevToolsActivePort'), 'utf8').split('\n')[0].trim(); } catch {}
+    if (VERBOSE && i % 20 === 0) vlog('waiting for DevToolsActivePort', (i / 10).toFixed(1) + 's');
+    if (chrome.exitCode !== null) throw new Error(`chrome exited early with code ${chrome.exitCode}`);
+    await sleep(100);
   }
-  if (!target) throw new Error('chrome did not start');
-  vlog('devtools port ready', dbg);
+  if (!dbg) throw new Error('chrome did not expose DevToolsActivePort');
+  vlog('DevToolsActivePort', dbg);
+  for (let i = 0; i < 60; i++) {
+    try {
+      const r = await fetch(`http://127.0.0.1:${dbg}/json/new?about:blank`, { method: 'PUT', signal: AbortSignal.timeout(5000) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      target = await r.json();
+      break;
+    } catch (e) {
+      if (VERBOSE && i % 5 === 0) vlog('waiting for devtools target', e.message);
+      await sleep(500);
+    }
+    if (chrome.exitCode !== null) throw new Error(`chrome exited early with code ${chrome.exitCode}`);
+  }
+  if (!target) throw new Error('chrome devtools target did not respond');
+  vlog('devtools target ready');
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((r) => (ws.onopen = r));
   vlog('devtools websocket connected');
