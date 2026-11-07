@@ -59,16 +59,27 @@ function render(t) {
   }
 }
 
+const BOOT_T0 = performance.now();
+const bmark = (m) => { if (CAPTURE) console.log(`[boot] ${m} ${Math.round(performance.now() - BOOT_T0)}ms`); };
 async function boot() {
   await Promise.all(FONTS.map(async ([fam, file, d]) => { const f = new FontFace(fam, file.includes('(') ? file : `url(fonts/${file})`, d); await f.load(); document.fonts.add(f); }));
+  bmark('fonts');
   await loadTiming();
+  bmark('timing');
   engine = makeEngine(gl);
+  bmark('engine');
   world = await buildWorld(engine.renderer); window.WORLD = world; window.ENGINE = engine;
+  bmark('world');
   SHOTS = buildShots(T, world);
   for (let i = 0; i < SHOTS.length; i++) SHOTS[i].end = SHOTS[i + 1] ? SHOTS[i + 1].start : SHOTS[i].end ?? T.dur;
   DURATION = SHOTS[SHOTS.length - 1].end;
-  for (const s of SHOTS) { if (!world.sets[s.set]) continue; try { render(s.start + 0.01); } catch { /* compile */ } }
+  bmark('shots');
+  if (!q.has('nowarm')) {
+    for (const s of SHOTS) { if (!world.sets[s.set]) continue; try { render(s.start + 0.01); } catch { /* compile */ } }
+    bmark('warmup');
+  }
   window.OP.ready = true;
+  bmark('ready');
   if (!CAPTURE) player();
 }
 

@@ -196,8 +196,13 @@ jobs:
           ARGS=()
           if [ "$QUALITY" = "draft" ]; then ARGS+=(--draft); fi
           echo "Chunk ${ID}: frames ${{ matrix.frames }} · ${START}s -> ${END}s · ${WORKERS} workers"
-          set -o pipefail
-          timeout "${COMMAND_TIMEOUT:-1500}" node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}" 2>&1 | tee render.log
+          set +e
+          timeout --signal=TERM --kill-after=30 "${COMMAND_TIMEOUT:-1500}" node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}" > render.log 2>&1
+          CODE=$?
+          set -e
+          pkill -f 'op-chrome-' 2>/dev/null || true
+          tail -40 render.log || true
+          if [ "$CODE" -ne 0 ]; then echo "render exited with code $CODE"; exit "$CODE"; fi
           test -s "$OUT"
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$OUT"
 

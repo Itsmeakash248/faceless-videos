@@ -23,6 +23,9 @@ const RPC_TIMEOUT_MS = parseInt(process.env.CAPTURE_RPC_TIMEOUT_MS || '0', 10);
 const T0 = Date.now();
 const vlog = (...a) => { if (VERBOSE) console.error('[capture]', ((Date.now() - T0) / 1000).toFixed(1) + 's', ...a); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const CHILDREN = new Set();
+const killChildren = () => { for (const c of CHILDREN) { try { c.kill('SIGKILL'); } catch {} } CHILDREN.clear(); };
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => { vlog('received', sig, '- killing Chrome'); killChildren(); process.exit(130); });
 const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
 const [mode, ...rest] = args.filter((a) => !a.startsWith('--'));
@@ -50,6 +53,8 @@ async function openWorker(port) {
     '--disable-background-networking', '--disable-component-update', '--disable-sync', '--disable-default-apps', '--disable-extensions', '--metrics-recording-only', '--no-service-autorun',
     '--disable-features=Translate,MediaRouter,OptimizationHints,InterestFeedContentSuggestions',
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--js-flags=--max-old-space-size=4096', ...(process.platform === 'linux' ? (SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-gl=angle', '--use-angle=gl']) : []), ...(process.env.CHROME_FLAGS ? process.env.CHROME_FLAGS.split(/\s+/).filter(Boolean) : []), 'about:blank'], { stdio: VERBOSE ? ['ignore', 'inherit', 'inherit'] : 'ignore' });
+  CHILDREN.add(chrome);
+  chrome.on('exit', () => CHILDREN.delete(chrome));
   let target, dbg;
   vlog('chrome launched', path.basename(CHROME), 'pid', chrome.pid);
   for (let i = 0; i < 300 && !dbg; i++) {
@@ -82,7 +87,11 @@ async function openWorker(port) {
     const m = JSON.parse(e.data);
     if (m.id && pend.has(m.id)) { const p = pend.get(m.id); pend.delete(m.id); m.error ? p.rej(new Error(m.error.message)) : p.res(m.result); }
     else if (m.method === 'Runtime.exceptionThrown') logs.push('EXCEPTION ' + (m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text));
-    else if (m.method === 'Runtime.consoleAPICalled' && ['error', 'warning'].includes(m.params.type)) logs.push(m.params.type.toUpperCase() + ' ' + m.params.args.map((a) => a.value ?? a.description).join(' '));
+    else if (m.method === 'Runtime.consoleAPICalled') {
+      const text = m.params.args.map((a) => a.value ?? a.description).join(' ');
+      if (['error', 'warning'].includes(m.params.type)) logs.push(m.params.type.toUpperCase() + ' ' + text);
+      if (text.startsWith('[boot]')) vlog('PAGE', text);
+    }
   };
   const send = (method, params = {}) => new Promise((res, rej) => {
     const i = ++id; let timer;
@@ -94,7 +103,8 @@ async function openWorker(port) {
   const evalv = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text); return r.result.value; };
   await send('Runtime.enable');
   await send('Page.enable');
-  await send('Page.navigate', { url: `http://127.0.0.1:${port}/index.html?capture=1${process.env.QS || ''}` });
+  const warm = process.env.CAPTURE_WARMUP === '1' ? '' : '&nowarm=1';
+  await send('Page.navigate', { url: `http://127.0.0.1:${port}/index.html?capture=1${warm}${process.env.QS || ''}` });
   for (let i = 0; i < 600; i++) {
     if (VERBOSE && i % 50 === 0) vlog('waiting for OP.ready', (i / 10).toFixed(1) + 's');
     const st = await evalv('window.OP ? (OP.bootError ? "ERR:" + OP.bootError : OP.ready) : false').catch(() => false);
@@ -213,6 +223,7 @@ try {
   }
 } catch (e) { console.error('ERROR', e.message); exit = 1; }
 srv.close();
+killChildren();
 setTimeout(() => process.exit(exit), 600);
 
 function run(cmd, a) { return new Promise((res, rej) => { const p = spawn(cmd, a, { stdio: 'inherit' }); p.on('close', (c) => (c === 0 ? res() : rej(new Error(cmd + ' exited ' + c)))); }); }
