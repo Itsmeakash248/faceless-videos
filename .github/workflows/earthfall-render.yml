@@ -1,0 +1,254 @@
+name: Render Earthfall
+
+on:
+  workflow_dispatch:
+    inputs:
+      chunks:
+        description: "Parallel render VMs / chunks (1-20)"
+        required: false
+        default: "20"
+      workers:
+        description: "Chrome render workers per VM (1-8)"
+        required: false
+        default: "4"
+      quality:
+        description: "Render quality"
+        type: choice
+        options:
+          - delivery
+          - draft
+        default: delivery
+      audio:
+        description: "Mux earthfall/data/mix.wav into the final MP4"
+        type: boolean
+        default: true
+      create_release:
+        description: "Attach the final MP4 to a GitHub Release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render-earthfall-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PROJECT_DIR: earthfall
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      duration: ${{ steps.plan.outputs.duration }}
+      chunks: ${{ steps.plan.outputs.chunks }}
+      quality: ${{ steps.plan.outputs.quality }}
+      workers: ${{ steps.plan.outputs.workers }}
+      audio: ${{ steps.plan.outputs.audio }}
+      create_release: ${{ steps.plan.outputs.create_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: earthfall
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify headless Chrome
+        run: |
+          set -euo pipefail
+          command -v google-chrome-stable || command -v google-chrome
+          google-chrome-stable --version 2>/dev/null || google-chrome --version
+
+      - name: Plan frame-exact chunks
+        id: plan
+        working-directory: earthfall
+        env:
+          CHUNKS: ${{ inputs.chunks }}
+          WORKERS: ${{ inputs.workers }}
+          QUALITY: ${{ inputs.quality }}
+          AUDIO: ${{ inputs.audio }}
+          CREATE_RELEASE: ${{ inputs.create_release }}
+          CHROME_SOFTWARE_GL: "1"
+          CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
+        run: |
+          set -euo pipefail
+          DUR=$(node tools/capture.mjs eval "OP.duration()" | grep -E '^[0-9]+(\.[0-9]+)?$' | head -1)
+          test -n "$DUR"
+          echo "Video duration: ${DUR}s"
+          export DURATION="$DUR"
+
+          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          const fps = 30;
+          const duration = parseFloat(process.env.DURATION);
+          const requested = Math.max(1, Math.min(20, parseInt(process.env.CHUNKS || "20", 10) || 20));
+          const totalFrames = Math.round(duration * fps);
+          const chunks = Math.max(1, Math.min(requested, totalFrames));
+          const include = [];
+          for (let i = 0; i < chunks; i++) {
+            const f0 = Math.floor((i * totalFrames) / chunks);
+            const f1 = Math.floor(((i + 1) * totalFrames) / chunks);
+            include.push({
+              id: String(i).padStart(2, "0"),
+              start: (f0 / fps).toFixed(6),
+              end: (f1 / fps).toFixed(6),
+              frames: f1 - f0,
+            });
+          }
+          console.log(`duration=${duration}`);
+          console.log(`chunks=${chunks}`);
+          console.log(`quality=${process.env.QUALITY || "delivery"}`);
+          console.log(`workers=${Math.max(1, Math.min(8, parseInt(process.env.WORKERS || "4", 10) || 4))}`);
+          console.log(`audio=${process.env.AUDIO === "false" ? "false" : "true"}`);
+          console.log(`create_release=${process.env.CREATE_RELEASE === "false" ? "false" : "true"}`);
+          console.log("matrix=" + JSON.stringify({ include }));
+          NODE
+
+      - name: Render plan summary
+        run: |
+          {
+            echo "### Earthfall cloud render"
+            echo ""
+            echo "| Setting | Value |"
+            echo "|---|---|"
+            echo "| Duration | **${{ steps.plan.outputs.duration }}s** |"
+            echo "| Parallel VMs | **${{ steps.plan.outputs.chunks }}** |"
+            echo "| Workers per VM | **${{ steps.plan.outputs.workers }}** |"
+            echo "| Quality | **${{ steps.plan.outputs.quality }}** |"
+            echo "| Audio | **${{ steps.plan.outputs.audio }}** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  render-chunk:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    env:
+      CHROME_SOFTWARE_GL: "1"
+      CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: earthfall
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Verify headless Chrome
+        run: |
+          set -euo pipefail
+          command -v google-chrome-stable || command -v google-chrome
+          google-chrome-stable --version 2>/dev/null || google-chrome --version
+
+      - name: Render chunk ${{ matrix.id }}
+        working-directory: earthfall
+        env:
+          QUALITY: ${{ needs.plan.outputs.quality }}
+          START: ${{ matrix.start }}
+          END: ${{ matrix.end }}
+          WORKERS: ${{ needs.plan.outputs.workers }}
+          ID: ${{ matrix.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p chunk_renders
+          OUT="chunk_renders/chunk_${ID}.mp4"
+          ARGS=()
+          if [ "$QUALITY" = "draft" ]; then ARGS+=(--draft); fi
+          echo "Chunk ${ID}: frames ${{ matrix.frames }} · ${START}s -> ${END}s · ${WORKERS} workers"
+          node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}"
+          test -s "$OUT"
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$OUT"
+
+      - name: Upload chunk
+        uses: actions/upload-artifact@v4
+        with:
+          name: earthfall-chunk-${{ matrix.id }}
+          path: earthfall/chunk_renders/chunk_${{ matrix.id }}.mp4
+          retention-days: 1
+          if-no-files-found: error
+
+  merge:
+    needs: [plan, render-chunk]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: earthfall
+          sparse-checkout-cone-mode: false
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Download chunks
+        uses: actions/download-artifact@v4
+        with:
+          pattern: earthfall-chunk-*
+          path: chunks_download
+          merge-multiple: true
+
+      - name: Stitch and mux final MP4
+        working-directory: earthfall
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          ls ../chunks_download/chunk_*.mp4 | sort > /tmp/chunks.txt
+          awk '{print "file '\''"$0"'\''"}' /tmp/chunks.txt > /tmp/concat.txt
+          echo "Stitching $(wc -l < /tmp/chunks.txt) chunks"
+          ffmpeg -y -loglevel error -fflags +genpts -f concat -safe 0 -i /tmp/concat.txt \
+            -c copy -avoid_negative_ts make_zero -movflags +faststart /tmp/earthfall_silent.mp4
+          if [ "${{ needs.plan.outputs.audio }}" = "true" ]; then
+            ffmpeg -y -loglevel error -i /tmp/earthfall_silent.mp4 -i data/mix.wav \
+              -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 320k -shortest \
+              -movflags +faststart output/earthfall_16x9.mp4
+          else
+            cp /tmp/earthfall_silent.mp4 output/earthfall_16x9.mp4
+          fi
+          test -s output/earthfall_16x9.mp4
+          ffprobe -v error -show_entries format=duration,size -of default=nw=1 output/earthfall_16x9.mp4
+
+      - name: Upload final video
+        uses: actions/upload-artifact@v4
+        with:
+          name: earthfall-render-${{ github.run_number }}
+          path: earthfall/output/earthfall_16x9.mp4
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: ${{ needs.plan.outputs.create_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: earthfall-${{ github.run_number }}
+          name: "Earthfall render #${{ github.run_number }}"
+          body: |
+            ## Earthfall cloud render
+
+            - **Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Commit:** `${{ github.sha }}`
+            - **Duration:** ${{ needs.plan.outputs.duration }}s
+            - **VMs:** ${{ needs.plan.outputs.chunks }} × ${{ needs.plan.outputs.workers }} workers
+            - **Quality:** ${{ needs.plan.outputs.quality }}
+          files: earthfall/output/earthfall_16x9.mp4
+          draft: false
+          prerelease: false

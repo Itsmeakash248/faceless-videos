@@ -1,0 +1,243 @@
+{
+ "duration": 119.186,
+ "sentences": [
+  {
+   "i": 0,
+   "v": "n",
+   "text": "This is the deepest hole humans have ever dug.",
+   "start": 0.3,
+   "end": 3.021
+  },
+  {
+   "i": 1,
+   "v": "n",
+   "text": "Twelve kilometres. That's it.",
+   "start": 3.481,
+   "end": 5.232
+  },
+  {
+   "i": 2,
+   "v": "n",
+   "text": "The Earth is six thousand, three hundred and seventy-one kilometres from surface to center.",
+   "start": 5.652,
+   "end": 11.031
+  },
+  {
+   "i": 3,
+   "v": "n",
+   "text": "We've explored two tenths of one percent of the way down.",
+   "start": 11.451,
+   "end": 14.509
+  },
+  {
+   "i": 4,
+   "v": "n",
+   "text": "So here's a thought experiment: drill a tunnel straight through the planet.",
+   "start": 14.969,
+   "end": 18.782
+  },
+  {
+   "i": 5,
+   "v": "n",
+   "text": "Line it with something that can't melt. Pump out the air.",
+   "start": 19.202,
+   "end": 22.362
+  },
+  {
+   "i": 6,
+   "v": "n",
+   "text": "Then step in.",
+   "start": 22.782,
+   "end": 23.76
+  },
+  {
+   "i": 7,
+   "v": "n",
+   "text": "You fall. After ten seconds, you're moving a hundred metres per second.",
+   "start": 24.24,
+   "end": 28.212
+  },
+  {
+   "i": 8,
+   "v": "n",
+   "text": "Gravity is strongest at the surface.",
+   "start": 28.633,
+   "end": 30.69
+  },
+  {
+   "i": 9,
+   "v": "n",
+   "text": "In a uniform planet, it weakens in a straight line: half as strong at the halfway point.",
+   "start": 31.09,
+   "end": 36.61
+  },
+  {
+   "i": 10,
+   "v": "n",
+   "text": "At the center, it cancels out completely.",
+   "start": 37.03,
+   "end": 39.475
+  },
+  {
+   "i": 11,
+   "v": "n",
+   "text": "For one perfect moment, you float.",
+   "start": 39.895,
+   "end": 41.819
+  },
+  {
+   "i": 12,
+   "v": "n",
+   "text": "Then you're past it, and gravity pulls you back.",
+   "start": 42.339,
+   "end": 44.858
+  },
+  {
+   "i": 13,
+   "v": "n",
+   "text": "You slow down, and stop at the far end.",
+   "start": 45.278,
+   "end": 47.621
+  },
+  {
+   "i": 14,
+   "v": "n",
+   "text": "The trip takes forty-two minutes.",
+   "start": 48.041,
+   "end": 49.843
+  },
+  {
+   "i": 15,
+   "v": "n",
+   "text": "That's the clean version. The real Earth is denser, so the fall is closer to thirty-eight minutes.",
+   "start": 50.323,
+   "end": 56.36
+  },
+  {
+   "i": 16,
+   "v": "n",
+   "text": "At the center, you'd be moving eight kilometres per second.",
+   "start": 56.78,
+   "end": 59.952
+  },
+  {
+   "i": 17,
+   "v": "n",
+   "text": "But the center is not a cave.",
+   "start": 60.372,
+   "end": 62.22
+  },
+  {
+   "i": 18,
+   "v": "n",
+   "text": "It's iron, almost as hot as the Sun's surface: five thousand four hundred degrees.",
+   "start": 62.66,
+   "end": 68.128
+  },
+  {
+   "i": 19,
+   "v": "n",
+   "text": "The pressure is three point six million atmospheres.",
+   "start": 68.548,
+   "end": 71.403
+  },
+  {
+   "i": 20,
+   "v": "n",
+   "text": "Rock flows like putty. Metal is squeezed solid.",
+   "start": 71.823,
+   "end": 74.949
+  },
+  {
+   "i": 21,
+   "v": "n",
+   "text": "Your tunnel would sag shut behind you.",
+   "start": 75.369,
+   "end": 77.41
+  },
+  {
+   "i": 22,
+   "v": "n",
+   "text": "The deepest hole we've made is twelve kilometres deep.",
+   "start": 77.87,
+   "end": 81.148
+  },
+  {
+   "i": 23,
+   "v": "n",
+   "text": "At the bottom, the rock is one hundred and eighty degrees. It creeps back into the hole.",
+   "start": 81.568,
+   "end": 86.708
+  },
+  {
+   "i": 24,
+   "v": "n",
+   "text": "The drill bit gets stuck. The hole heals.",
+   "start": 87.128,
+   "end": 89.66
+  },
+  {
+   "i": 25,
+   "v": "n",
+   "text": "Unless your tunnel runs pole to pole, the Earth turns under you.",
+   "start": 90.12,
+   "end": 93.908
+  },
+  {
+   "i": 26,
+   "v": "n",
+   "text": "You drift sideways, and scrape the wall.",
+   "start": 94.328,
+   "end": 96.423
+  },
+  {
+   "i": 27,
+   "v": "n",
+   "text": "With air, you'd hit terminal velocity: two hundred kilometres per hour.",
+   "start": 96.843,
+   "end": 101.266
+  },
+  {
+   "i": 28,
+   "v": "n",
+   "text": "You'd never reach the other side.",
+   "start": 101.686,
+   "end": 103.527
+  },
+  {
+   "i": 29,
+   "v": "n",
+   "text": "So a tunnel through the Earth is impossible.",
+   "start": 103.967,
+   "end": 106.265
+  },
+  {
+   "i": 30,
+   "v": "n",
+   "text": "But the maths is beautiful.",
+   "start": 106.725,
+   "end": 108.298
+  },
+  {
+   "i": 31,
+   "v": "n",
+   "text": "A hole through the center is a shortcut to the other side.",
+   "start": 108.778,
+   "end": 112.138
+  },
+  {
+   "i": 32,
+   "v": "n",
+   "text": "And most of the time, that other side is ocean.",
+   "start": 112.558,
+   "end": 115.23
+  },
+  {
+   "i": 33,
+   "v": "n",
+   "text": "The deepest we've managed is a pinprick.",
+   "start": 115.69,
+   "end": 117.866
+  }
+ ]
+}

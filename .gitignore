@@ -1,0 +1,10 @@
+# Generated renders and chunk scratch
+renders/
+.chunks-*/
+
+# Generated audio stems
+**/data/stems/
+
+# Dependencies / OS noise
+node_modules/
+.DS_Store
