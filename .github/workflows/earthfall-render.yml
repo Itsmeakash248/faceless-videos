@@ -255,7 +255,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p output
-          ls ../chunks_download/chunk_*.mp4 | sort > /tmp/chunks.txt
+          ls "$PWD/../chunks_download"/chunk_*.mp4 | sort > /tmp/chunks.txt
           awk '{print "file '\''"$0"'\''"}' /tmp/chunks.txt > /tmp/concat.txt
           echo "Stitching $(wc -l < /tmp/chunks.txt) chunks over ${RANGE_START}s + ${RANGE_DURATION}s"
           ffmpeg -y -loglevel error -fflags +genpts -f concat -safe 0 -i /tmp/concat.txt \
