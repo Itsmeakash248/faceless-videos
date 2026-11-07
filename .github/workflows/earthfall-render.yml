@@ -201,6 +201,7 @@ jobs:
           CODE=$?
           set -e
           pkill -f 'op-chrome-' 2>/dev/null || true
+          pkill -f 'ffmpeg .*chunks-' 2>/dev/null || true
           tail -40 render.log || true
           if [ "$CODE" -ne 0 ]; then echo "render exited with code $CODE"; exit "$CODE"; fi
           test -s "$OUT"
