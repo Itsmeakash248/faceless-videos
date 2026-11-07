@@ -26,6 +26,10 @@ on:
         description: "End second (blank = full video; use for a small smoke test)"
         required: false
         default: ""
+      command_timeout:
+        description: "Per-chunk hard timeout in seconds (default 1500)"
+        required: false
+        default: "1500"
       audio:
         description: "Mux earthfall/data/mix.wav into the final MP4"
         type: boolean
@@ -184,6 +188,7 @@ jobs:
           END: ${{ matrix.end }}
           WORKERS: ${{ needs.plan.outputs.workers }}
           ID: ${{ matrix.id }}
+          COMMAND_TIMEOUT: ${{ inputs.command_timeout }}
         run: |
           set -euo pipefail
           mkdir -p chunk_renders
@@ -192,7 +197,7 @@ jobs:
           if [ "$QUALITY" = "draft" ]; then ARGS+=(--draft); fi
           echo "Chunk ${ID}: frames ${{ matrix.frames }} · ${START}s -> ${END}s · ${WORKERS} workers"
           set -o pipefail
-          timeout 1500 node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}" 2>&1 | tee render.log
+          timeout "${COMMAND_TIMEOUT:-1500}" node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}" 2>&1 | tee render.log
           test -s "$OUT"
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$OUT"
 
