@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       chunks:
-        description: "Parallel render VMs / chunks (1-10)"
+        description: "Parallel render VMs / chunks (1-20)"
         required: false
-        default: "8"
+        default: "20"
       workers:
         description: "Chrome render workers per VM (1-8)"
         required: false
@@ -27,9 +27,9 @@ on:
         required: false
         default: ""
       command_timeout:
-        description: "Per-chunk hard timeout in seconds (default 1500)"
+        description: "Per-chunk hard timeout in seconds (default 7200)"
         required: false
-        default: "1500"
+        default: "7200"
       chunk_ids:
         description: "Comma-separated chunk ids to render (blank = all)"
         required: false
@@ -116,7 +116,7 @@ jobs:
           start = Math.max(0, Math.min(start, full));
           end = Math.min(Math.max(end, start + 1 / fps), full);
 
-          const requested = Math.max(1, Math.min(10, parseInt(process.env.CHUNKS || "8", 10) || 8));
+          const requested = Math.max(1, Math.min(20, parseInt(process.env.CHUNKS || "20", 10) || 20));
           const totalFrames = Math.max(1, Math.round((end - start) * fps));
           const chunks = Math.max(1, Math.min(requested, totalFrames));
           const include = [];
@@ -214,6 +214,7 @@ jobs:
           WORKERS: ${{ needs.plan.outputs.workers }}
           ID: ${{ matrix.id }}
           COMMAND_TIMEOUT: ${{ inputs.command_timeout }}
+          CAPTURE_RPC_TIMEOUT_MS: "1200000"
         run: |
           set -euo pipefail
           mkdir -p chunk_renders
@@ -285,7 +286,7 @@ jobs:
             r=$(echo "$r" | tr -d ' ')
             test -n "$r" || continue
             echo "Checking run $r for chunks..."
-            for i in $(seq -w 0 9); do
+            for i in $(seq -w 0 19); do
               if [ ! -f "chunks_old/chunk_$i.mp4" ]; then
                 if gh run download "$r" --repo "$GITHUB_REPOSITORY" -n "cold-case-chunk-$i" -D chunks_old >/dev/null 2>&1; then
                   echo "reused chunk $i from run $r"
