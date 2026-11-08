@@ -179,7 +179,7 @@ jobs:
       CHROME_SOFTWARE_GL: "1"
       CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
       CAPTURE_VERBOSE: "1"
-      CAPTURE_RPC_TIMEOUT_MS: "600000"
+      CAPTURE_RPC_TIMEOUT_MS: "1200000"
     steps:
       - uses: actions/checkout@v4
         with:

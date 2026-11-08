@@ -160,7 +160,7 @@ export function buildShots(T, W) {
       const follow = p.clone().add(V(0, -0.05, 0));
       const look = [follow.x, follow.y - whip * 6.0, follow.z - whip * 1.0];
       return { cam: { pos, look, fov: kf(t, [[tA2, 36], [tA2 + 0.6, 30], [tB1, 34]]), shake: 0.1, roll: -6 * whip }, look: { focus: Math.hypot(pos[0] - p.x, pos[1] - p.y, pos[2] - p.z), aper: 0.02, warm: 0.6 },
-        shadowAt: [p.x, Math.min(p.y, 1.6), p.z], shadowSize: 2, mb: t > tB1 - 0.25 ? 7 : t > tA2 + 0.35 ? 3 : 1, shutter: 0.6 };
+        shadowAt: [p.x, Math.min(p.y, 1.6), p.z], shadowSize: 2, mb: t > tB1 - 0.25 ? 4 : t > tA2 + 0.35 ? 3 : 1, shutter: 0.6 };
     } });
 
   add({ id: 'B1', set: 'trench', start: tB1, note: 'for one dollar and fifty cents — the helmet lands in soldier\'s hands',
@@ -209,7 +209,7 @@ export function buildShots(T, W) {
       const lookY = lerp(3.4, 1.85, land) - 0.25 * crane;
       const look = [lerp(0.0, -0.1, crane), lookY, lerp(0.2, -1.2, crane)];
       return { cam: { pos, look, fov: lerp(38, 42, crane), shake: 0.12 }, look: { focus: lerp(1.4, 3.6, crane), aper: lerp(0.026, 0.02, crane), warm: 0.7 },
-        shadowAt: [0, 1.0, -1.0], shadowSize: lerp(1.8, 4.5, crane), mb: t < tB1 + 0.2 ? 7 : 1, shutter: 0.7 };
+        shadowAt: [0, 1.0, -1.0], shadowSize: lerp(1.8, 4.5, crane), mb: t < tB1 + 0.2 ? 4 : 1, shutter: 0.7 };
     } });
 
   add({ id: 'B2', set: 'trench', start: tB2, note: 'Four decades later — sweep along the trench',
