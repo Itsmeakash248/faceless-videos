@@ -280,9 +280,18 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p chunks_old
-          for i in $(seq -w 0 9); do
-            gh run download "$RESUME_RUN" --repo "$GITHUB_REPOSITORY" -n "cold-case-chunk-$i" -D chunks_old >/dev/null 2>&1 \
-              && echo "reused chunk $i" || echo "chunk $i not in resume run"
+          IFS=',' read -ra RUNS <<< "$RESUME_RUN"
+          for r in "${RUNS[@]}"; do
+            r=$(echo "$r" | tr -d ' ')
+            test -n "$r" || continue
+            echo "Checking run $r for chunks..."
+            for i in $(seq -w 0 9); do
+              if [ ! -f "chunks_old/chunk_$i.mp4" ]; then
+                if gh run download "$r" --repo "$GITHUB_REPOSITORY" -n "cold-case-chunk-$i" -D chunks_old >/dev/null 2>&1; then
+                  echo "reused chunk $i from run $r"
+                fi
+              fi
+            done
           done
           ls chunks_old/chunk_*.mp4 2>/dev/null | wc -l || true
 
