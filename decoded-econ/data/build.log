@@ -1,0 +1,42 @@
+bullard
+  body     83672 verts  167472 tris  16880 ms
+  head    111820 verts  223036 tris  15736 ms
+  handL   103436 verts  206396 tris  11373 ms
+  handR   103436 verts  206396 tris  11136 ms
+  → 21.3 MB
+worker
+  body     85010 verts  170172 tris  14363 ms
+  head    111843 verts  223068 tris  14304 ms
+  handL   103436 verts  206396 tris  17905 ms
+  handR   103436 verts  206396 tris  23510 ms
+  → 21.4 MB
+soldier1
+  body     98036 verts  196232 tris  41514 ms
+  head    108076 verts  215532 tris  18030 ms
+  handL    54958 verts  109598 tris  7530 ms
+  handR    54958 verts  109598 tris  7122 ms
+  → 16.7 MB
+soldier2
+  body     98036 verts  196232 tris  23606 ms
+  head    107625 verts  214632 tris  29211 ms
+  handL    54958 verts  109598 tris  16072 ms
+  handR    54958 verts  109598 tris  19727 ms
+  → 16.7 MB
+miner
+  body     84189 verts  168536 tris  30916 ms
+  head    112380 verts  224140 tris  22943 ms
+  handL   103436 verts  206396 tris  12216 ms
+  handR   103436 verts  206396 tris  12258 ms
+  → 21.4 MB
+iron1
+  body     84110 verts  168360 tris  25394 ms
+  head    111876 verts  223132 tris  25374 ms
+  handL   103436 verts  206396 tris  12136 ms
+  handR   103436 verts  206396 tris  11594 ms
+  → 21.3 MB
+iron2
+  body     84110 verts  168360 tris  14352 ms
+  head    111743 verts  222868 tris  16762 ms
+  handL   103436 verts  206396 tris  13072 ms
+  handR   103436 verts  206396 tris  12117 ms
+  → 21.3 MB

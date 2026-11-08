@@ -1,0 +1,53 @@
+{
+ "title": "Room 1046: The Man Who Vanished in Plain Sight",
+ "narrator": {
+  "voice": "am_michael",
+  "speed": 1.04
+ },
+ "lines": [
+  {
+   "text": "In nineteen thirty-five, a stranger checked into Room ten forty-six.",
+   "gap": 0.35
+  },
+  {
+   "text": "He carried no bags and demanded an interior room with no windows.",
+   "gap": 0.4
+  },
+  {
+   "text": "The shades were drawn shut, leaving the room pitch black.",
+   "gap": 0.35
+  },
+  {
+   "text": "Whenever the maid arrived, he sat motionless in the dark.",
+   "gap": 0.4
+  },
+  {
+   "text": "He whispered for her to leave the door unlocked.",
+   "gap": 0.45
+  },
+  {
+   "text": "The next morning, the telephone was left off the hook.",
+   "gap": 0.4
+  },
+  {
+   "text": "Hotel staff unlocked the room to complete silence.",
+   "gap": 0.4
+  },
+  {
+   "text": "Inside, he had been tied up and brutally attacked.",
+   "gap": 0.45
+  },
+  {
+   "text": "Detectives begged him to name his attacker.",
+   "gap": 0.35
+  },
+  {
+   "text": "He only whispered, nobody.",
+   "gap": 0.5
+  },
+  {
+   "text": "Ninety years later, the mystery of Room ten forty-six remains unsolved.",
+   "gap": 1.5
+  }
+ ]
+}

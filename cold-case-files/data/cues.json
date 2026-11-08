@@ -1,0 +1,63 @@
+[
+ {
+  "gain": 1,
+  "t": 10.338,
+  "type": "swell",
+  "dur": 2.8
+ },
+ {
+  "gain": 1,
+  "t": 17.846,
+  "type": "creak",
+  "dur": 1.5
+ },
+ {
+  "gain": 1,
+  "t": 20.612,
+  "type": "pickup"
+ },
+ {
+  "gain": 1,
+  "t": 20.712,
+  "type": "line",
+  "dur": 3.357000000000002
+ },
+ {
+  "gain": 1,
+  "t": 24.169,
+  "type": "knock"
+ },
+ {
+  "gain": 1,
+  "t": 24.569,
+  "type": "creak",
+  "dur": 2
+ },
+ {
+  "gain": 0.9,
+  "t": 27.957,
+  "type": "knock"
+ },
+ {
+  "gain": 1,
+  "t": 28.357,
+  "type": "swell",
+  "dur": 3.2
+ },
+ {
+  "gain": 1,
+  "t": 31.31,
+  "type": "swell",
+  "dur": 2.4
+ },
+ {
+  "gain": 1.25,
+  "t": 35.027,
+  "type": "sting"
+ },
+ {
+  "gain": 0.8,
+  "t": 42.593,
+  "type": "lastknock"
+ }
+]

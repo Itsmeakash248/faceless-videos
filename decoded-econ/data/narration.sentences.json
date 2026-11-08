@@ -1,0 +1,75 @@
+{
+ "duration": 39.522,
+ "sentences": [
+  {
+   "i": 0,
+   "v": "n",
+   "text": "In nineteen eighty-five, Costco introduced a hot dog for one dollar and fifty cents.",
+   "start": 0.3,
+   "end": 5.747
+  },
+  {
+   "i": 1,
+   "v": "n",
+   "text": "Four decades later, that price has never changed.",
+   "start": 6.127,
+   "end": 9.231
+  },
+  {
+   "i": 2,
+   "v": "n",
+   "text": "Today, it loses forty million dollars every single year.",
+   "start": 9.611,
+   "end": 13.282
+  },
+  {
+   "i": 3,
+   "v": "n",
+   "text": "When an executive wanted to raise it, the founder gave a blunt warning.",
+   "start": 13.682,
+   "end": 17.605
+  },
+  {
+   "i": 4,
+   "v": "n",
+   "text": "If you raise that hot dog, I will kill you.",
+   "start": 17.955,
+   "end": 20.595
+  },
+  {
+   "i": 5,
+   "v": "n",
+   "text": "Why defend a cheap meal so fiercely?",
+   "start": 21.045,
+   "end": 23.117
+  },
+  {
+   "i": 6,
+   "v": "n",
+   "text": "Because it is retail's greatest loss leader.",
+   "start": 23.497,
+   "end": 25.827
+  },
+  {
+   "i": 7,
+   "v": "n",
+   "text": "Nobody leaves with just a hot dog.",
+   "start": 26.227,
+   "end": 28.543
+  },
+  {
+   "i": 8,
+   "v": "n",
+   "text": "Shoppers fill huge carts, then pay sixty dollars to renew their membership.",
+   "start": 28.893,
+   "end": 33.341
+  },
+  {
+   "i": 9,
+   "v": "n",
+   "text": "That dollar-fifty meal quietly anchored a three hundred billion dollar empire.",
+   "start": 33.741,
+   "end": 38.322
+  }
+ ]
+}

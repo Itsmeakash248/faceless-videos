@@ -1,0 +1,16 @@
+{
+  "title": "The Dollar-Fifty Empire",
+  "narrator": { "voice": "am_michael", "speed": 1.06 },
+  "lines": [
+    { "text": "In nineteen eighty-five, Costco introduced a hot dog for one dollar and fifty cents.", "gap": 0.38 },
+    { "text": "Four decades later, that price has never changed.", "gap": 0.38 },
+    { "text": "Today, it loses forty million dollars every single year.", "gap": 0.40 },
+    { "text": "When an executive wanted to raise it, the founder gave a blunt warning.", "gap": 0.35 },
+    { "text": "If you raise that hot dog, I will kill you.", "gap": 0.45 },
+    { "text": "Why defend a cheap meal so fiercely?", "gap": 0.38 },
+    { "text": "Because it is retail's greatest loss leader.", "gap": 0.40 },
+    { "text": "Nobody leaves with just a hot dog.", "gap": 0.35 },
+    { "text": "Shoppers fill huge carts, then pay sixty dollars to renew their membership.", "gap": 0.40 },
+    { "text": "That dollar-fifty meal quietly anchored a three hundred billion dollar empire.", "gap": 1.20 }
+  ]
+}

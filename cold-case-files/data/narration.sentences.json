@@ -1,0 +1,82 @@
+{
+ "duration": 42.393,
+ "sentences": [
+  {
+   "i": 0,
+   "v": "n",
+   "text": "In nineteen thirty-five, a stranger checked into Room ten forty-six.",
+   "start": 0.3,
+   "end": 5.032
+  },
+  {
+   "i": 1,
+   "v": "n",
+   "text": "He carried no bags and demanded an interior room with no windows.",
+   "start": 5.382,
+   "end": 9.738
+  },
+  {
+   "i": 2,
+   "v": "n",
+   "text": "The shades were drawn shut, leaving the room pitch black.",
+   "start": 10.138,
+   "end": 13.399
+  },
+  {
+   "i": 3,
+   "v": "n",
+   "text": "Whenever the maid arrived, he sat motionless in the dark.",
+   "start": 13.749,
+   "end": 17.146
+  },
+  {
+   "i": 4,
+   "v": "n",
+   "text": "He whispered for her to leave the door unlocked.",
+   "start": 17.546,
+   "end": 20.162
+  },
+  {
+   "i": 5,
+   "v": "n",
+   "text": "The next morning, the telephone was left off the hook.",
+   "start": 20.612,
+   "end": 23.769
+  },
+  {
+   "i": 6,
+   "v": "n",
+   "text": "Hotel staff unlocked the room to complete silence.",
+   "start": 24.169,
+   "end": 27.357
+  },
+  {
+   "i": 7,
+   "v": "n",
+   "text": "Inside, he had been tied up and brutally attacked.",
+   "start": 27.757,
+   "end": 30.56
+  },
+  {
+   "i": 8,
+   "v": "n",
+   "text": "Detectives begged him to name his attacker.",
+   "start": 31.01,
+   "end": 33.517
+  },
+  {
+   "i": 9,
+   "v": "n",
+   "text": "He only whispered, nobody.",
+   "start": 33.867,
+   "end": 35.579
+  },
+  {
+   "i": 10,
+   "v": "n",
+   "text": "Ninety years later, the mystery of Room ten forty-six remains unsolved.",
+   "start": 36.079,
+   "end": 40.893
+  }
+ ]
+}
