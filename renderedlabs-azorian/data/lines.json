@@ -1,0 +1,117 @@
+{
+  "duration": 44.618,
+  "lines": [
+    {
+      "i": 0,
+      "who": "narrator",
+      "text": "In March nineteen sixty-eight, a Soviet nuclear submarine vanished in the Pacific.",
+      "start": 0.35,
+      "end": 5.311
+    },
+    {
+      "i": 1,
+      "who": "narrator",
+      "text": "Soviet search fleets found nothing.",
+      "start": 5.471,
+      "end": 7.576
+    },
+    {
+      "i": 2,
+      "who": "narrator",
+      "text": "US hydrophones heard it implode, sixteen thousand feet down.",
+      "start": 7.736,
+      "end": 11.612
+    },
+    {
+      "i": 3,
+      "who": "beat",
+      "text": "",
+      "start": 11.772,
+      "end": 12.172
+    },
+    {
+      "i": 4,
+      "who": "narrator",
+      "text": "Over three miles deep.",
+      "start": 12.172,
+      "end": 13.706
+    },
+    {
+      "i": 5,
+      "who": "narrator",
+      "text": "The CIA spent five hundred million dollars on a secret recovery ship.",
+      "start": 13.866,
+      "end": 18.118
+    },
+    {
+      "i": 6,
+      "who": "narrator",
+      "text": "Lowering three miles of pipe to steal the wreck.",
+      "start": 18.278,
+      "end": 20.918
+    },
+    {
+      "i": 7,
+      "who": "narrator",
+      "text": "On the seabed, the giant claw seized the hull.",
+      "start": 21.078,
+      "end": 23.74
+    },
+    {
+      "i": 8,
+      "who": "narrator",
+      "text": "Halfway up, disaster struck.",
+      "start": 23.9,
+      "end": 25.813
+    },
+    {
+      "i": 9,
+      "who": "beat",
+      "text": "",
+      "start": 25.973,
+      "end": 26.373
+    },
+    {
+      "i": 10,
+      "who": "narrator",
+      "text": "The tines snapped under sixteen thousand feet of pressure.",
+      "start": 26.373,
+      "end": 29.637
+    },
+    {
+      "i": 11,
+      "who": "narrator",
+      "text": "The broken hull plunged back to the abyss.",
+      "start": 29.797,
+      "end": 32.298
+    },
+    {
+      "i": 12,
+      "who": "narrator",
+      "text": "Only a thirty-eight foot bow was recovered, with two nuclear torpedoes and six sailors.",
+      "start": 32.458,
+      "end": 37.762
+    },
+    {
+      "i": 13,
+      "who": "narrator",
+      "text": "When leaked, the CIA gave its iconic response.",
+      "start": 37.922,
+      "end": 40.832
+    },
+    {
+      "i": 14,
+      "who": "Spokesperson",
+      "text": "We can neither confirm nor deny.",
+      "start": 40.992,
+      "end": 43.058
+    },
+    {
+      "i": 15,
+      "who": "beat",
+      "text": "",
+      "start": 43.218,
+      "end": 43.818
+    }
+  ]
+}
