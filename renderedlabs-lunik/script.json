@@ -1,0 +1,16 @@
+{
+ "title": "The CIA's Overnight Rocket Heist",
+ "narrator": { "voice": "am_michael", "speed": 1.10 },
+ "phone": { "voice": "am_onyx", "speed": 1.0, "gain": 0.8 },
+ "lines": [
+  { "text": "In nineteen fifty-nine, the Soviets toured a moon rocket through Mexico City.", "gap": 0.3 },
+  { "text": "The CIA wanted to inspect it, but armed guards watched the hall night and day.", "gap": 0.3 },
+  { "text": "So they targeted the transport truck heading to the rail yard.", "gap": 0.3 },
+  { "text": "Agents secretly diverted the flatbed into a rented salvage yard.", "gap": 0.3 },
+  { "text": "In socks to leave no marks, they pried open the twenty-foot crate.", "gap": 0.3 },
+  { "text": "Under flashlights, they unscrewed one hundred and thirty bolts to reach the engine.", "gap": 0.3 },
+  { "text": "They photographed every stamp, measuring rockets twice as powerful as America's.", "gap": 0.3 },
+  { "text": "Before dawn, they forged the Soviet wire seal and screwed the crate shut.", "gap": 0.3 },
+  { "text": "At seven a.m., the Soviet guard arrived and never noticed a thing.", "gap": 0.9 }
+ ]
+}

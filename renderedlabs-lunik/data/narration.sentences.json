@@ -1,0 +1,68 @@
+{
+ "duration": 42.231,
+ "sentences": [
+  {
+   "i": 0,
+   "v": "n",
+   "text": "In nineteen fifty-nine, the Soviets toured a moon rocket through Mexico City.",
+   "start": 0.3,
+   "end": 4.975
+  },
+  {
+   "i": 1,
+   "v": "n",
+   "text": "The CIA wanted to inspect it, but armed guards watched the hall night and day.",
+   "start": 5.275,
+   "end": 9.815
+  },
+  {
+   "i": 2,
+   "v": "n",
+   "text": "So they targeted the transport truck heading to the rail yard.",
+   "start": 10.115,
+   "end": 13.643
+  },
+  {
+   "i": 3,
+   "v": "n",
+   "text": "Agents secretly diverted the flatbed into a rented salvage yard.",
+   "start": 13.943,
+   "end": 18.079
+  },
+  {
+   "i": 4,
+   "v": "n",
+   "text": "In socks to leave no marks, they pried open the twenty-foot crate.",
+   "start": 18.379,
+   "end": 22.138
+  },
+  {
+   "i": 5,
+   "v": "n",
+   "text": "Under flashlights, they unscrewed one hundred and thirty bolts to reach the engine.",
+   "start": 22.438,
+   "end": 27.016
+  },
+  {
+   "i": 6,
+   "v": "n",
+   "text": "They photographed every stamp, measuring rockets twice as powerful as America's.",
+   "start": 27.316,
+   "end": 32.237
+  },
+  {
+   "i": 7,
+   "v": "n",
+   "text": "Before dawn, they forged the Soviet wire seal and screwed the crate shut.",
+   "start": 32.537,
+   "end": 36.708
+  },
+  {
+   "i": 8,
+   "v": "n",
+   "text": "At seven a.m., the Soviet guard arrived and never noticed a thing.",
+   "start": 37.008,
+   "end": 41.331
+  }
+ ]
+}
