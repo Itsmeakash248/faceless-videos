@@ -1,0 +1,16 @@
+{
+ "title": "The $81 Million Heist Hidden by a Printer",
+ "narrator": { "voice": "am_michael", "speed": 1.15 },
+ "lines": [
+  { "text": "February twenty sixteen. A quiet morning in Dhaka.", "gap": 0.20 },
+  { "text": "Inside the dealing room, the official SWIFT printer sat dead silent.", "gap": 0.20 },
+  { "text": "Its tray sat empty, mistaken by staff for a routine paper jam.", "gap": 0.20 },
+  { "text": "Overnight, hackers breached the terminal, sending thirty-five orders for nearly one billion dollars.", "gap": 0.20 },
+  { "text": "Custom malware wiped the queue, silencing physical confirmations.", "gap": 0.20 },
+  { "text": "Eighty-one million escaped to Manila casinos through fake accounts.", "gap": 0.20 },
+  { "text": "Twenty million was stopped by pure luck: a single typo, 'Fundation'.", "gap": 0.20 },
+  { "text": "The New York Fed blocked eight hundred and fifty million more.", "gap": 0.20 },
+  { "text": "By Saturday, when the printer restarted, the cash was gone.", "gap": 0.20 },
+  { "text": "A decade later, sixty-six million dollars is still missing.", "gap": 0.60 }
+ ]
+}

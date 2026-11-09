@@ -1,0 +1,63 @@
+[
+  { "t": 0.05, "type": "whoosh", "dur": 0.6, "f0": 200, "f1": 900, "g": 0.5, "pan": -0.2 },
+  { "t": 0.10, "type": "ambient", "name": "morning_city", "dur": 3.5, "g": 0.35 },
+
+  { "t": 1.85, "type": "whoosh", "dur": 0.4, "f0": 500, "f1": 1100, "g": 0.6, "pan": 0.2 },
+  { "t": 2.10, "type": "footsteps", "count": 4, "step": 0.38, "g": 0.45 },
+
+  { "t": 3.66, "type": "whoosh", "dur": 0.45, "f0": 350, "f1": 800, "g": 0.55 },
+  { "t": 3.90, "type": "door_creak", "dur": 0.5, "g": 0.3 },
+  { "t": 4.10, "type": "server_buzz", "dur": 7.5, "f0": 110, "g": 0.25 },
+
+  { "t": 5.50, "type": "whoosh", "dur": 0.35, "f0": 800, "f1": 300, "g": 0.5 },
+  { "t": 6.10, "type": "printer_gear", "dur": 0.8, "mode": "stall", "g": 0.4 },
+
+  { "t": 7.65, "type": "whoosh", "dur": 0.4, "f0": 400, "f1": 1200, "g": 0.6 },
+  { "t": 8.10, "type": "thunk", "f": 95, "decay": 12, "g": 0.5 },
+
+  { "t": 9.60, "type": "tap", "count": 3, "step": 0.2, "g": 0.4 },
+  { "t": 10.30, "type": "paper_feed", "dur": 0.6, "mode": "jam", "g": 0.45 },
+
+  { "t": 11.83, "type": "whoosh", "dur": 0.45, "f0": 250, "f1": 1400, "g": 0.7 },
+  { "t": 12.10, "type": "keystrokes", "count": 16, "speed": 0.08, "g": 0.65 },
+
+  { "t": 13.80, "type": "whoosh", "dur": 0.5, "f0": 600, "f1": 1600, "g": 0.7, "pan": -0.3 },
+  { "t": 14.10, "type": "digital_beep", "freq": 1760, "decay": 8, "g": 0.5 },
+  { "t": 14.70, "type": "digital_beep", "freq": 2200, "decay": 10, "g": 0.55 },
+
+  { "t": 15.60, "type": "whoosh", "dur": 0.5, "f0": 300, "f1": 1200, "g": 0.65 },
+  { "t": 15.90, "type": "countup_tick", "count": 10, "dur": 1.5, "g": 0.5 },
+
+  { "t": 17.79, "type": "glitch_byte", "dur": 0.7, "g": 0.7 },
+  { "t": 18.20, "type": "server_buzz", "dur": 3.6, "f0": 220, "g": 0.4 },
+
+  { "t": 19.80, "type": "whoosh", "dur": 0.4, "f0": 900, "f1": 250, "g": 0.6 },
+  { "t": 20.10, "type": "paper_burn", "dur": 1.2, "g": 0.45 },
+
+  { "t": 21.89, "type": "whoosh", "dur": 0.5, "f0": 350, "f1": 1400, "g": 0.75, "pan": 0.3 },
+  { "t": 22.30, "type": "vault_open", "dur": 1.0, "g": 0.5 },
+
+  { "t": 23.80, "type": "whoosh", "dur": 0.4, "f0": 1100, "f1": 400, "g": 0.65 },
+  { "t": 24.10, "type": "casino_chips", "count": 14, "dur": 1.6, "g": 0.75 },
+  { "t": 24.80, "type": "roulette_spin", "dur": 1.8, "g": 0.5 },
+
+  { "t": 25.97, "type": "whoosh", "dur": 0.4, "f0": 450, "f1": 1300, "g": 0.65 },
+  { "t": 26.30, "type": "scanner_beep", "dur": 0.5, "g": 0.55 },
+
+  { "t": 27.80, "type": "error_alert", "dur": 1.2, "f0": 880, "f1": 587, "g": 0.8 },
+  { "t": 28.50, "type": "stamp_thud", "g": 0.75 },
+
+  { "t": 30.11, "type": "whoosh", "dur": 0.5, "f0": 300, "f1": 900, "g": 0.7 },
+  { "t": 30.60, "type": "vault_slam", "g": 0.85 },
+  { "t": 31.20, "type": "bell", "freq": 1318, "decay": 4, "g": 0.6 },
+
+  { "t": 33.43, "type": "whoosh", "dur": 0.4, "f0": 800, "f1": 350, "g": 0.6 },
+  { "t": 33.80, "type": "printer_gear", "dur": 1.8, "mode": "active", "g": 0.7 },
+  { "t": 34.40, "type": "paper_feed", "dur": 1.4, "mode": "spit", "g": 0.65 },
+
+  { "t": 36.80, "type": "whoosh", "dur": 0.45, "f0": 300, "f1": 800, "g": 0.6 },
+  { "t": 37.10, "type": "thunk", "f": 80, "decay": 8, "g": 0.65 },
+
+  { "t": 38.60, "type": "whoosh", "dur": 0.6, "f0": 700, "f1": 180, "g": 0.55 },
+  { "t": 39.20, "type": "bell", "freq": 880, "decay": 3, "g": 0.5 }
+]

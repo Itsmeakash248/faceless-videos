@@ -1,0 +1,6 @@
+data/*.wav
+chunk_renders/
+renders/
+review/
+output/
+render.log
