@@ -1,0 +1,96 @@
+{
+ "duration": 44.17,
+ "lines": [
+  {
+   "i": 0,
+   "who": "narrator",
+   "text": "In nineteen seventy-one, a twenty-ton vault door seemed unbreachable.",
+   "start": 0.35,
+   "end": 4.155
+  },
+  {
+   "i": 1,
+   "who": "narrator",
+   "text": "So a gang bypassed it through the floor.",
+   "start": 4.335,
+   "end": 6.46
+  },
+  {
+   "i": 2,
+   "who": "narrator",
+   "text": "From a cellar, they dropped five feet, tunneled forty feet under a restaurant, and hauled eight tons of dirt.",
+   "start": 6.64,
+   "end": 12.022
+  },
+  {
+   "i": 3,
+   "who": "narrator",
+   "text": "Fifteen feet up, three feet of reinforced concrete stopped them.",
+   "start": 12.202,
+   "end": 15.521
+  },
+  {
+   "i": 4,
+   "who": "narrator",
+   "text": "Their jack sank into a well, and their thermal lance choked in fumes.",
+   "start": 15.701,
+   "end": 19.394
+  },
+  {
+   "i": 5,
+   "who": "narrator",
+   "text": "So gelignite blasted a twelve-inch hole through the floor.",
+   "start": 19.574,
+   "end": 22.506
+  },
+  {
+   "i": 6,
+   "who": "narrator",
+   "text": "Two hundred and sixty-eight boxes emptied. One point five million stolen.",
+   "start": 22.686,
+   "end": 27.335
+  },
+  {
+   "i": 7,
+   "who": "narrator",
+   "text": "A radio ham intercepted their walkie-talkie:",
+   "start": 27.515,
+   "end": 30.182
+  },
+  {
+   "i": 8,
+   "who": "Operator",
+   "text": "Money may be your God, but it's not mine.",
+   "start": 30.362,
+   "end": 32.875
+  },
+  {
+   "i": 9,
+   "who": "narrator",
+   "text": "Police checked seven hundred banks, but only checked the doors.",
+   "start": 33.055,
+   "end": 36.388
+  },
+  {
+   "i": 10,
+   "who": "narrator",
+   "text": "Britain sealed the files until twenty seventy-one.",
+   "start": 36.568,
+   "end": 39.248
+  },
+  {
+   "i": 11,
+   "who": "beat",
+   "text": "",
+   "start": 39.428,
+   "end": 39.928
+  },
+  {
+   "i": 12,
+   "who": "narrator",
+   "text": "Seven hundred pages, locked for another forty-five years.",
+   "start": 39.928,
+   "end": 43.19
+  }
+ ]
+}

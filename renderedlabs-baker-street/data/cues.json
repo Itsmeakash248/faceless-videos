@@ -1,0 +1,280 @@
+[
+ {
+  "t": 0,
+  "type": "sub_drone",
+  "gain": 0.6,
+  "dur": 4
+ },
+ {
+  "t": 0.2,
+  "type": "blip",
+  "gain": 0.5
+ },
+ {
+  "t": 1.775,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 1.775,
+  "type": "whoosh",
+  "gain": 0.7
+ },
+ {
+  "t": 1.875,
+  "type": "clank",
+  "gain": 0.8
+ },
+ {
+  "t": 4.27,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 4.27,
+  "type": "whoosh",
+  "gain": 0.75
+ },
+ {
+  "t": 4.42,
+  "type": "blip",
+  "gain": 0.6
+ },
+ {
+  "t": 6.535,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 6.535,
+  "type": "whoosh",
+  "gain": 0.65
+ },
+ {
+  "t": 6.735,
+  "type": "dig",
+  "gain": 0.7
+ },
+ {
+  "t": 8.635,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 8.635,
+  "type": "scrape",
+  "gain": 0.8
+ },
+ {
+  "t": 8.935,
+  "type": "dig",
+  "gain": 0.75
+ },
+ {
+  "t": 10.515,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 10.515,
+  "type": "rubble",
+  "gain": 0.85
+ },
+ {
+  "t": 10.665000000000001,
+  "type": "blip",
+  "gain": 0.5
+ },
+ {
+  "t": 12.135,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 12.135,
+  "type": "whoosh",
+  "gain": 0.6
+ },
+ {
+  "t": 13.175,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 13.175,
+  "type": "drill",
+  "gain": 0.85,
+  "dur": 1.8
+ },
+ {
+  "t": 15.615,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 15.615,
+  "type": "jack_groan",
+  "gain": 0.9,
+  "dur": 2
+ },
+ {
+  "t": 16.015,
+  "type": "splash",
+  "gain": 0.75
+ },
+ {
+  "t": 17.395,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 17.395,
+  "type": "lance_hiss",
+  "gain": 0.9,
+  "dur": 1.8
+ },
+ {
+  "t": 19.455,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 19.455,
+  "type": "whoosh",
+  "gain": 0.6
+ },
+ {
+  "t": 19.654999999999998,
+  "type": "click",
+  "gain": 0.7
+ },
+ {
+  "t": 20.215,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 20.215,
+  "type": "blast",
+  "gain": 1
+ },
+ {
+  "t": 20.415,
+  "type": "rubble",
+  "gain": 0.8
+ },
+ {
+  "t": 23.315,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 23.315,
+  "type": "box_pry",
+  "gain": 0.85,
+  "dur": 1.5
+ },
+ {
+  "t": 23.615000000000002,
+  "type": "coins",
+  "gain": 0.75
+ },
+ {
+  "t": 25.275,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 25.275,
+  "type": "coins",
+  "gain": 0.85
+ },
+ {
+  "t": 25.474999999999998,
+  "type": "blip",
+  "gain": 0.6
+ },
+ {
+  "t": 27.39,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 27.39,
+  "type": "radio_static",
+  "gain": 0.8,
+  "dur": 1.8
+ },
+ {
+  "t": 27.69,
+  "type": "squelch",
+  "gain": 0.75
+ },
+ {
+  "t": 30.415,
+  "type": "squelch",
+  "gain": 0.85
+ },
+ {
+  "t": 30.515,
+  "type": "radio_static",
+  "gain": 0.5,
+  "dur": 2.2
+ },
+ {
+  "t": 33.135,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 33.135,
+  "type": "whoosh",
+  "gain": 0.7
+ },
+ {
+  "t": 33.434999999999995,
+  "type": "blip",
+  "gain": 0.6
+ },
+ {
+  "t": 36.595,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 36.595,
+  "type": "stamp_thud",
+  "gain": 1
+ },
+ {
+  "t": 36.795,
+  "type": "blip",
+  "gain": 0.6
+ },
+ {
+  "t": 39.428,
+  "type": "cut",
+  "gain": 1
+ },
+ {
+  "t": 39.428,
+  "type": "whoosh",
+  "gain": 0.7
+ },
+ {
+  "t": 39.727999999999994,
+  "type": "blip",
+  "gain": 0.6
+ },
+ {
+  "t": 41.355,
+  "type": "whoosh",
+  "gain": 0.8
+ },
+ {
+  "t": 41.455,
+  "type": "sub_drone",
+  "gain": 0.7,
+  "dur": 2.8
+ }
+]

@@ -1,0 +1,372 @@
+name: Render RenderedLabs Baker Street Heist
+
+on:
+  workflow_dispatch:
+    inputs:
+      aspect:
+        description: "Aspect ratio (16x9 landscape or 9x16 vertical)"
+        type: choice
+        options:
+          - "16x9"
+          - "9x16"
+        default: "16x9"
+      chunks:
+        description: "Parallel render VMs / chunks (1-20)"
+        required: false
+        default: "8"
+      workers:
+        description: "Chrome render workers per VM (1-8)"
+        required: false
+        default: "4"
+      quality:
+        description: "Render quality"
+        type: choice
+        options:
+          - delivery
+          - draft
+        default: delivery
+      start:
+        description: "Start second (blank = 0; use for a small smoke test)"
+        required: false
+        default: ""
+      end:
+        description: "End second (blank = full video; use for a small smoke test)"
+        required: false
+        default: ""
+      command_timeout:
+        description: "Per-chunk hard timeout in seconds (default 3600)"
+        required: false
+        default: "3600"
+      chunk_ids:
+        description: "Comma-separated chunk ids to render (blank = all)"
+        required: false
+        default: ""
+      resume_run:
+        description: "Run id to reuse baker-chunk-* artifacts from (blank = current run)"
+        required: false
+        default: ""
+      upload_artifact:
+        description: "Upload the final MP4 as an Actions artifact"
+        type: boolean
+        default: true
+      audio:
+        description: "Mux renderedlabs-baker-street/data/mix.wav into the final MP4"
+        type: boolean
+        default: true
+      create_release:
+        description: "Attach the final MP4 to a GitHub Release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: render-renderedlabs-baker-street-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      duration: ${{ steps.plan.outputs.duration }}
+      range_start: ${{ steps.plan.outputs.range_start }}
+      range_end: ${{ steps.plan.outputs.range_end }}
+      range_duration: ${{ steps.plan.outputs.range_duration }}
+      chunks: ${{ steps.plan.outputs.chunks }}
+      quality: ${{ steps.plan.outputs.quality }}
+      workers: ${{ steps.plan.outputs.workers }}
+      audio: ${{ steps.plan.outputs.audio }}
+      aspect: ${{ steps.plan.outputs.aspect }}
+      create_release: ${{ steps.plan.outputs.create_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            renderedlabs-baker-street
+          sparse-checkout-cone-mode: false
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Plan frame-exact chunks from audio duration
+        id: plan
+        working-directory: renderedlabs-baker-street
+        env:
+          ASPECT: ${{ inputs.aspect }}
+          CHUNKS: ${{ inputs.chunks }}
+          WORKERS: ${{ inputs.workers }}
+          QUALITY: ${{ inputs.quality }}
+          RANGE_START: ${{ inputs.start }}
+          RANGE_END: ${{ inputs.end }}
+          CHUNK_IDS: ${{ inputs.chunk_ids }}
+          RESUME_RUN: ${{ inputs.resume_run }}
+          AUDIO: ${{ inputs.audio }}
+          CREATE_RELEASE: ${{ inputs.create_release }}
+        run: |
+          set -euo pipefail
+          FULL_DUR=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 data/mix.wav)
+          test -n "$FULL_DUR"
+          echo "Source audio duration: ${FULL_DUR}s"
+          export FULL_DURATION="$FULL_DUR"
+
+          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          const fps = 24;
+          const full = parseFloat(process.env.FULL_DURATION);
+          let start = parseFloat(process.env.RANGE_START || "0");
+          let end = parseFloat(process.env.RANGE_END || "");
+          if (!Number.isFinite(start)) start = 0;
+          if (!Number.isFinite(end) || end <= 0) end = full;
+          start = Math.max(0, Math.min(start, full));
+          end = Math.min(Math.max(end, start + 1 / fps), full);
+
+          const requested = Math.max(1, Math.min(20, parseInt(process.env.CHUNKS || "8", 10) || 8));
+          const totalFrames = Math.max(1, Math.round((end - start) * fps));
+          const chunks = Math.max(1, Math.min(requested, totalFrames));
+          const include = [];
+          for (let i = 0; i < chunks; i++) {
+            const f0 = Math.floor((i * totalFrames) / chunks);
+            const f1 = Math.floor(((i + 1) * totalFrames) / chunks);
+            include.push({
+              id: String(i).padStart(2, "0"),
+              start: (start + f0 / fps).toFixed(6),
+              end: (start + f1 / fps).toFixed(6),
+              frames: f1 - f0,
+            });
+          }
+
+          const only = (process.env.CHUNK_IDS || "").split(",").map((s) => s.trim()).filter(Boolean);
+          if (only.length) {
+            const missing = only.filter((id) => !include.some((c) => c.id === id));
+            if (missing.length) throw new Error("unknown chunk ids: " + missing.join(","));
+            const picked = include.filter((c) => only.includes(c.id));
+            include.splice(0, include.length, ...picked);
+          }
+
+          console.log(`duration=${full}`);
+          console.log(`range_start=${start.toFixed(6)}`);
+          console.log(`range_end=${end.toFixed(6)}`);
+          console.log(`range_duration=${(end - start).toFixed(6)}`);
+          console.log(`chunks=${include.length}`);
+          console.log(`aspect=${process.env.ASPECT || "16x9"}`);
+          console.log(`resume_run=${process.env.RESUME_RUN || ""}`);
+          console.log(`quality=${process.env.QUALITY || "delivery"}`);
+          console.log(`workers=${Math.max(1, Math.min(8, parseInt(process.env.WORKERS || "4", 10) || 4))}`);
+          console.log(`audio=${process.env.AUDIO === "false" ? "false" : "true"}`);
+          console.log(`create_release=${process.env.CREATE_RELEASE === "false" ? "false" : "true"}`);
+          console.log("matrix=" + JSON.stringify({ include }));
+          NODE
+
+      - name: Render plan summary
+        run: |
+          {
+            echo "### RenderedLabs Baker Street Bank Heist cloud render"
+            echo ""
+            echo "| Setting | Value |"
+            echo "|---|---|"
+            echo "| Aspect | **${{ steps.plan.outputs.aspect }}** |"
+            echo "| Full duration | **${{ steps.plan.outputs.duration }}s** |"
+            echo "| Render range | **${{ steps.plan.outputs.range_start }}s → ${{ steps.plan.outputs.range_end }}s** |"
+            echo "| Parallel VMs | **${{ steps.plan.outputs.chunks }}** |"
+            echo "| Workers per VM | **${{ steps.plan.outputs.workers }}** |"
+            echo "| Quality | **${{ steps.plan.outputs.quality }}** |"
+            echo "| Audio | **${{ steps.plan.outputs.audio }}** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  render-chunk:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    env:
+      CHROME_SOFTWARE_GL: "1"
+      CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
+      CAPTURE_VERBOSE: "1"
+      CAPTURE_RPC_TIMEOUT_MS: "3600000"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            renderedlabs-baker-street
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Verify headless Chrome
+        run: |
+          set -euo pipefail
+          command -v google-chrome-stable || command -v google-chrome
+          google-chrome-stable --version 2>/dev/null || google-chrome --version
+          nproc
+          free -h
+
+      - name: Render chunk ${{ matrix.id }}
+        working-directory: renderedlabs-baker-street
+        env:
+          AR: ${{ needs.plan.outputs.aspect }}
+          QUALITY: ${{ needs.plan.outputs.quality }}
+          START: ${{ matrix.start }}
+          END: ${{ matrix.end }}
+          WORKERS: ${{ needs.plan.outputs.workers }}
+          ID: ${{ matrix.id }}
+          COMMAND_TIMEOUT: ${{ inputs.command_timeout }}
+        run: |
+          set -euo pipefail
+          mkdir -p chunk_renders
+          OUT="chunk_renders/chunk_${ID}.mp4"
+          ARGS=()
+          if [ "$QUALITY" = "draft" ]; then ARGS+=(--draft); fi
+          echo "Chunk ${ID}: frames ${{ matrix.frames }} · ${START}s -> ${END}s · ${WORKERS} workers · aspect ${AR}"
+          set +e
+          timeout --signal=TERM --kill-after=30 "${COMMAND_TIMEOUT:-3600}" node tools/capture.mjs video "$OUT" "$START" "$END" "$WORKERS" "${ARGS[@]}" > render.log 2>&1
+          CODE=$?
+          set -e
+          pkill -f 'op-chrome-' 2>/dev/null || true
+          pkill -f 'ffmpeg .*chunks-' 2>/dev/null || true
+          tail -40 render.log || true
+          if [ "$CODE" -ne 0 ]; then echo "render exited with code $CODE"; exit "$CODE"; fi
+          test -s "$OUT"
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$OUT"
+
+      - name: Upload render log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baker-log-${{ matrix.id }}
+          path: renderedlabs-baker-street/render.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload chunk
+        uses: actions/upload-artifact@v4
+        with:
+          name: baker-chunk-${{ matrix.id }}
+          path: renderedlabs-baker-street/chunk_renders/chunk_${{ matrix.id }}.mp4
+          retention-days: 1
+          if-no-files-found: error
+
+  merge:
+    needs: [plan, render-chunk]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            renderedlabs-baker-street
+          sparse-checkout-cone-mode: false
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Download chunks from this run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: baker-chunk-*
+          path: chunks_new
+          merge-multiple: true
+
+      - name: Download chunks from resume run
+        if: ${{ inputs.resume_run != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESUME_RUN: ${{ inputs.resume_run }}
+        run: |
+          set -euo pipefail
+          mkdir -p chunks_old
+          IFS=',' read -ra RUNS <<< "$RESUME_RUN"
+          for r in "${RUNS[@]}"; do
+            r=$(echo "$r" | tr -d ' ')
+            test -n "$r" || continue
+            echo "Checking run $r for chunks..."
+            for i in $(seq -w 0 19); do
+              if [ ! -f "chunks_old/chunk_$i.mp4" ]; then
+                if gh run download "$r" --repo "$GITHUB_REPOSITORY" -n "baker-chunk-$i" -D chunks_old >/dev/null 2>&1; then
+                  echo "reused chunk $i from run $r"
+                fi
+              fi
+            done
+          done
+          ls chunks_old/chunk_*.mp4 2>/dev/null | wc -l || true
+
+      - name: Stitch and mux final MP4
+        working-directory: renderedlabs-baker-street
+        env:
+          ASPECT: ${{ needs.plan.outputs.aspect }}
+          RANGE_START: ${{ needs.plan.outputs.range_start }}
+          RANGE_DURATION: ${{ needs.plan.outputs.range_duration }}
+          AUDIO: ${{ needs.plan.outputs.audio }}
+          RESUME_RUN: ${{ inputs.resume_run }}
+        run: |
+          set -euo pipefail
+          mkdir -p output ../chunks_all
+          if [ -n "$RESUME_RUN" ]; then cp ../chunks_old/chunk_*.mp4 ../chunks_all/; fi
+          cp ../chunks_new/chunk_*.mp4 ../chunks_all/
+          ls "$PWD/../chunks_all"/chunk_*.mp4 | sort > /tmp/chunks.txt
+          awk '{print "file '\''"$0"'\''"}' /tmp/chunks.txt > /tmp/concat.txt
+          echo "Stitching $(wc -l < /tmp/chunks.txt) chunks over ${RANGE_START}s + ${RANGE_DURATION}s"
+          OUT_NAME="baker_street_${ASPECT}.mp4"
+          ffmpeg -y -loglevel error -fflags +genpts -f concat -safe 0 -i /tmp/concat.txt \
+            -c copy -avoid_negative_ts make_zero -movflags +faststart /tmp/baker_silent.mp4
+          if [ "$AUDIO" = "true" ]; then
+            ffmpeg -y -loglevel error -i /tmp/baker_silent.mp4 -ss "$RANGE_START" -t "$RANGE_DURATION" -i data/mix.wav \
+              -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 320k -shortest \
+              -movflags +faststart "output/${OUT_NAME}"
+          else
+            cp /tmp/baker_silent.mp4 "output/${OUT_NAME}"
+          fi
+          test -s "output/${OUT_NAME}"
+          ffprobe -v error -show_entries format=duration,size -of default=nw=1 "output/${OUT_NAME}"
+
+          # Also create web-optimized share copy
+          ffmpeg -v error -y -i "output/${OUT_NAME}" -c:v libx264 -crf 22 -tune grain -preset slow -pix_fmt yuv420p -c:a copy -movflags +faststart "output/baker_street_${ASPECT}_share.mp4"
+
+      - name: Upload final video
+        if: ${{ inputs.upload_artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baker-street-render-${{ github.run_number }}
+          path: renderedlabs-baker-street/output/*.mp4
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: ${{ needs.plan.outputs.create_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: baker-street-${{ github.run_number }}
+          name: "RenderedLabs: The 1971 Baker Street Bank Heist #${{ github.run_number }}"
+          body: |
+            ## RenderedLabs: The 1971 Baker Street Bank Heist (Stickman Animated Short)
+
+            - **Channel:** RenderedLabs (`@RenderedLabs`)
+            - **Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Commit:** `${{ github.sha }}`
+            - **Aspect:** `${{ needs.plan.outputs.aspect }}`
+            - **Range:** ${{ needs.plan.outputs.range_start }}s → ${{ needs.plan.outputs.range_end }}s
+            - **VMs:** ${{ needs.plan.outputs.chunks }} × ${{ needs.plan.outputs.workers }} workers
+            - **Quality:** ${{ needs.plan.outputs.quality }}
+          files: renderedlabs-baker-street/output/*.mp4
+          draft: false
+          prerelease: false
