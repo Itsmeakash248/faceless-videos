@@ -108,10 +108,11 @@ jobs:
         run: |
           set -euo pipefail
           DUR=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 renderedlabs-printer-heist/data/mix.wav)
-          node - <<NODE >> "$GITHUB_OUTPUT"
-          const full = parseFloat("$DUR");
+          export DUR
+          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          const full = parseFloat(process.env.DUR);
           if (!Number.isFinite(full) || full <= 0) {
-            console.error("Failed to read duration from mix.wav: $DUR");
+            console.error("Failed to read duration from mix.wav: " + process.env.DUR);
             process.exit(1);
           }
           const fps = 30;
@@ -205,6 +206,12 @@ jobs:
           google-chrome-stable --version 2>/dev/null || google-chrome --version
           nproc
           free -h
+
+      - name: Ensure WAV audio from FLAC
+        run: |
+          if [ -f renderedlabs-printer-heist/data/mix.flac ] && [ ! -f renderedlabs-printer-heist/data/mix.wav ]; then
+            ffmpeg -v error -y -i renderedlabs-printer-heist/data/mix.flac -c:a pcm_s16le renderedlabs-printer-heist/data/mix.wav
+          fi
 
       - name: Render chunk ${{ matrix.id }}
         working-directory: renderedlabs-printer-heist
