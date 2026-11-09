@@ -190,7 +190,7 @@ jobs:
       CHROME_SOFTWARE_GL: "1"
       CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
       CAPTURE_VERBOSE: "1"
-      CAPTURE_RPC_TIMEOUT_MS: "1200000"
+      CAPTURE_RPC_TIMEOUT_MS: "7200000"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -263,6 +263,7 @@ jobs:
 
   merge:
     needs: [plan, render-chunk]
+    if: always() && needs.plan.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
